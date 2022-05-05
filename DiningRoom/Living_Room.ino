@@ -31,22 +31,11 @@ const int nmbrOfSolenoids = 10;
 long intervals[nmbrOfSolenoids];
 long durations[nmbrOfSolenoids]; //holds duration of each event;
 
-int lastConnectionAttempt = millis();
-int connectionDelay = 5000; // try to reconnect every 5 seconds
-
-int nmbrOfTimers = 10;
-customTimer timers[10];
-
-int lastprinted = 0;
-
-//**setup**
-//
-
-//**loop**
+customTimer timers[nmbrOfSolenoids];
 
 BLYNK_CONNECTED() {
   rtc.begin(); // Synchronize time on connection
-  Blynk.syncAll(); //calls all BLYNK_WRITE for every virtual pin (that has sync setting turned on). Causes buffer overflow with Mega+ESP8266 shield:(
+  Blynk.syncAll(); //I am hoping with the Arduino Uno Rev 2 (built in wifi), we can call syncAll without buffer issues
 }
 
 void setup()
@@ -66,14 +55,12 @@ void setup()
   //connect to wifi
   Blynk.begin(auth, ssid, pass);
   delay(30);
-  if (Blynk.connected() == false) {
+  while(Blynk.connected() == false) {
     Serial.println("didint connect. reconnecting");
     Blynk.connect();
   }
 
   setSyncInterval(10 * 60); //sync interval for syncing clock
-
-  syncPins();
 
   //set solenoid timers
   for (int i = 0; i < nmbrOfSolenoids; i++) {
@@ -97,13 +84,14 @@ void loop()
   else
   {
     Blynk.run();
-    for (int i = 0; i < nmbrOfTimers; i++) {
+    for (int i = 0; i < nmbrOfSolenoids; i++) {
       if (timers[i].check() == true) {
         triggerSolenoid(i);
       }
     }
 
     int nowTime = millis();
+    static int lastprinted = 0;
     if (nowTime - lastprinted > 1000) {
       lastprinted = nowTime;
       printScheduleAndDurations();
