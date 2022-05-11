@@ -79,23 +79,25 @@ void loop()
 
     //try to reconnect
     Blynk.disconnect();
-    Blynk.connect(); //tries to connect for 30 seconds
+    Blynk.connect(); //tries to connect for 30 seconds, dont call begin() since that just assigns the domain and port
   }
   else
   {
     Blynk.run();
-    for (int i = 0; i < nmbrOfSolenoids; i++) {
-      if (timers[i].check() == true) {
-        triggerSolenoid(i);
-      }
-    }
+  }
 
-    int nowTime = millis();
-    static int lastprinted = 0;
-    if (nowTime - lastprinted > 1000) {
-      lastprinted = nowTime;
-      printScheduleAndDurations();
+  //run this code regardless of connection
+  for (int i = 0; i < nmbrOfSolenoids; i++) {
+    if (timers[i].check() == true) {
+      triggerSolenoid(i);
     }
+  }
+
+  int nowTime = millis();
+  static int lastprinted = 0;
+  if (nowTime - lastprinted > 1000) {
+    lastprinted = nowTime;
+    printScheduleAndDurations();
   }
 }
 
